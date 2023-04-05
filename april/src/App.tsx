@@ -62,7 +62,7 @@ function App() {
       >
         <GithubIcon />
       </a>
-      <div className="flex flex-col w-full max-w-[560px] items-center gap-10">
+      <div className="flex flex-col w-full mx-2 max-w-[560px] items-center gap-10">
         <img className="w-16 h-16" src="/writting.png" />
         <div className="text-center">
           <h1 className="text-3xl text-zinc-100 font-semibold">Faça algo mágico...</h1>
