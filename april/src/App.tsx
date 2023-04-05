@@ -2,7 +2,7 @@ import { Transition } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { GithubIcon } from "./assets/GithubIcon";
 import { SearchIcon } from "./assets/SearchIcon";
-import { Community } from "./components/community";
+import { Community } from "./components/Community";
 
 async function fetchCommunities(query: string, controller: AbortController) {
   return fetch(`https://discord.com/api//discovery/search?query=${query}&limit=12`, {
