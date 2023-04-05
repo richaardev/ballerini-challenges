@@ -1,5 +1,5 @@
 import { Transition } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GithubIcon } from "./assets/GithubIcon";
 import { SearchIcon } from "./assets/SearchIcon";
 import { Community } from "./components/Community";
@@ -24,7 +24,25 @@ function App() {
   const [isFocused, setIsFocused] = useState(false);
   const [search, setSearch] = useState("");
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const keyDownHandler = (e: KeyboardEvent) => {
+    if (inputRef.current) {
+      if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        inputRef.current.focus();
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        inputRef.current.blur();
+      }
+    }
+  };
+
   useEffect(() => {
+    window.addEventListener("keydown", keyDownHandler);
+
     const controller = new AbortController();
 
     let dataTimeout = setTimeout(() => {
@@ -42,6 +60,7 @@ function App() {
     }, 500);
 
     return () => {
+      window.removeEventListener("keydown", keyDownHandler);
       controller.abort();
       clearTimeout(dataTimeout);
       setLoading(false);
@@ -66,6 +85,7 @@ function App() {
             <SearchIcon />
             <input
               id="input"
+              ref={inputRef}
               onChange={(e) => setSearch(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
