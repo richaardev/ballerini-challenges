@@ -1,10 +1,25 @@
-import { Fragment, useEffect, useState } from "react";
-import { SearchIcon } from "./assets/SearchIcon";
-import communities from "./data/communities";
 import { Transition } from "@headlessui/react";
+import { useEffect, useState } from "react";
 import { GithubIcon } from "./assets/GithubIcon";
+import { SearchIcon } from "./assets/SearchIcon";
+
+async function fetchCommunities(query: string, controller: AbortController) {
+  return fetch(`https://discord.com/api//discovery/search?query=${query}&limit=12`, {
+    signal: controller.signal,
+  }).then((response) => {
+    if (response.ok) {
+      return response.json();
+    }
+    throw new Error("Não foi possível pegar os dados :(");
+  });
+}
 
 function App() {
+  // preguiça de tipar
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [error, setError] = useState<null | string>(null);
+  const [loading, setLoading] = useState(false);
+
   const [isFocused, setIsFocused] = useState(false);
   const [search, setSearch] = useState("");
   const parseMembers = (members: number) =>
@@ -12,13 +27,33 @@ function App() {
       notation: "compact",
     }).format(members);
 
-  const communities_filtered = communities.filter((community) =>
-    community.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const joinCommunity = (link: string) => {
-    window.open(link, "_blank");
+  const joinCommunity = (code: string) => {
+    window.open(`https://discord.gg/${code}`, "_blank");
   };
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    let dataTimeout = setTimeout(() => {
+      setLoading(true);
+      fetchCommunities(search, controller)
+        .then((data) => {
+          setCommunities(data.hits);
+          setError(null);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setLoading(false);
+          setError(err.message);
+        });
+    }, 500);
+
+    return () => {
+      controller.abort();
+      clearTimeout(dataTimeout);
+      setLoading(false);
+    };
+  }, [search]);
   return (
     <div className="bg-zinc-900 py-8 min-h-screen flex items-center justify-center">
       <a
@@ -57,32 +92,44 @@ function App() {
           >
             <hr className="border-zinc-700" />
             <div className="flex flex-col gap-4 my-4 px-1 overflow-hidden">
-              {communities_filtered.length > 0 ? (
-                communities_filtered.map((community) => (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      {community.image ? (
-                        <img className="rounded-lg w-10 h-10" src={community.image} />
-                      ) : (
-                        <div className="rounded-lg w-10 h-10 bg-zinc-700" />
-                      )}
-                      <div className="flex flex-col">
-                        <h3 className="font-medium text-zinc-200 text-lg leading-5">
-                          {community.name}
-                        </h3>
-                        <span className="text-zinc-400 text-sm leading-4">
-                          {parseMembers(community.members)} Membros
-                        </span>
+              {loading ? (
+                <div className="text-zinc-400 text-center">Carregando resultados...</div>
+              ) : communities.length > 0 ? (
+                communities.map((community) => {
+                  let format = "png";
+                  if (community.icon.startsWith("a_")) format = "gif";
+
+                  return (
+                    <div key={community.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {community.icon ? (
+                          <img
+                            className="rounded-lg w-10 h-10"
+                            src={`https://cdn.discordapp.com/icons/${community.id}/${community.icon}.${format}`}
+                          />
+                        ) : (
+                          <div className="rounded-lg w-10 h-10 bg-zinc-700" />
+                        )}
+                        <div className="flex flex-col">
+                          <h3 className="font-medium text-zinc-200 text-lg leading-5">
+                            {community.name}
+                          </h3>
+                          <span className="text-zinc-400 text-sm leading-4">
+                            {parseMembers(community.approximate_member_count)} Membros
+                          </span>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => joinCommunity(community.vanity_url_code)}
+                        className="rounded-md bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200 font-medium text-sm px-2 py-1 h-fit border border-zinc-600"
+                      >
+                        Entrar
+                      </button>
                     </div>
-                    <button
-                      onClick={() => joinCommunity(community.link)}
-                      className="rounded-md bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200 font-medium text-sm px-2 py-1 h-fit border border-zinc-600"
-                    >
-                      Entrar
-                    </button>
-                  </div>
-                ))
+                  );
+                })
+              ) : error != null ? (
+                <div className="text-zinc-400 text-center">{error}</div>
               ) : (
                 <div className="text-zinc-400 text-center">Nenhum resultado encontrado</div>
               )}
