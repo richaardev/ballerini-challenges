@@ -84,7 +84,7 @@ function App() {
                   </div>
                 ))
               ) : (
-                <div>Nenhum resultado encontrado</div>
+                <div className="text-zinc-400 text-center">Nenhum resultado encontrado</div>
               )}
             </div>
           </Transition>

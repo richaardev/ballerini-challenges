@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  @apply text-zinc-100;
+}
+
 ::-webkit-scrollbar {
   width: 0.25rem;
 }
