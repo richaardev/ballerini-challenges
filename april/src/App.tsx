@@ -2,6 +2,7 @@ import { Transition } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { GithubIcon } from "./assets/GithubIcon";
 import { SearchIcon } from "./assets/SearchIcon";
+import { Community } from "./components/community";
 
 async function fetchCommunities(query: string, controller: AbortController) {
   return fetch(`https://discord.com/api//discovery/search?query=${query}&limit=12`, {
@@ -22,14 +23,6 @@ function App() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [search, setSearch] = useState("");
-  const parseMembers = (members: number) =>
-    Intl.NumberFormat("en", {
-      notation: "compact",
-    }).format(members);
-
-  const joinCommunity = (code: string) => {
-    window.open(`https://discord.gg/${code}`, "_blank");
-  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -69,7 +62,7 @@ function App() {
           <h2 className="text-2xl text-zinc-400">Ache sempre tudo em um só lugar!</h2>
         </div>
         <div className="bg-zinc-800 flex flex-col px-6 min-h-14 rounded-lg w-full">
-          <label htmlFor="input" className="peer group/input flex gap-3 items-center">
+          <label className="peer group/input flex gap-3 items-center">
             <SearchIcon />
             <input
               id="input"
@@ -94,44 +87,12 @@ function App() {
             <div className="flex flex-col gap-4 my-4 px-1 overflow-hidden">
               {loading ? (
                 <div className="text-zinc-400 text-center">Carregando resultados...</div>
-              ) : communities.length > 0 ? (
-                communities.map((community) => {
-                  let format = "png";
-                  if (community.icon.startsWith("a_")) format = "gif";
-
-                  return (
-                    <div key={community.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        {community.icon ? (
-                          <img
-                            className="rounded-lg w-10 h-10"
-                            src={`https://cdn.discordapp.com/icons/${community.id}/${community.icon}.${format}`}
-                          />
-                        ) : (
-                          <div className="rounded-lg w-10 h-10 bg-zinc-700" />
-                        )}
-                        <div className="flex flex-col">
-                          <h3 className="font-medium text-zinc-200 text-lg leading-5">
-                            {community.name}
-                          </h3>
-                          <span className="text-zinc-400 text-sm leading-4">
-                            {parseMembers(community.approximate_member_count)} Membros
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => joinCommunity(community.vanity_url_code)}
-                        className="rounded-md bg-zinc-700 transition-colors text-zinc-400 hover:text-zinc-200 font-medium text-sm px-2 py-1 h-fit border border-zinc-600"
-                      >
-                        Entrar
-                      </button>
-                    </div>
-                  );
-                })
               ) : error != null ? (
                 <div className="text-zinc-400 text-center">{error}</div>
-              ) : (
+              ) : communities.length < 1 ? (
                 <div className="text-zinc-400 text-center">Nenhum resultado encontrado</div>
+              ) : (
+                communities.map((community) => <Community community={community} />)
               )}
             </div>
           </Transition>
